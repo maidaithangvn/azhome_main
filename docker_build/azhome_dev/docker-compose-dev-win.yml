@@ -27,11 +27,11 @@ services:
     ports:
       - "8079:8069"
     command: >
-      odoo
+      sh -c "pip install docker --break-system-packages && odoo
       --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons,/mnt/master-addons
       --db_host=host.docker.internal
       --db_user=openpg
-      --db_password=openpgpwd
+      --db_password=openpgpwd"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
