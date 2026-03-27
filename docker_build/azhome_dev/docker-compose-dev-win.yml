@@ -15,6 +15,7 @@ services:
       - PASSWORD=openpgpwd
       - AZHOME_PLAN_CODE=saas_gold
       - AZHOME_MAX_USERS=100
+      - AZHOME_HOST_OS=windows
     volumes:
       # 1. Addons
       - ./../../az_addons_cons:/mnt/extra-addons

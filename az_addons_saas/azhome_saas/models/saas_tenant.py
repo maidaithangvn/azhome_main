@@ -17,8 +17,8 @@ except ImportError:
 # ============================================================
 #  PHÁT HIỆN NỀN TẢNG (Windows / Linux NAS / Linux VPS)
 # ============================================================
-IS_LINUX = os.name == "posix"
-IS_WINDOWS = os.name == "nt"
+IS_WINDOWS = (os.name == "nt") or (os.environ.get("AZHOME_HOST_OS") == "windows")
+IS_LINUX = not IS_WINDOWS
 
 # Đường dẫn mặc định theo quy ước thư mục mới:
 #   - Windows:    .../server/azhome_main/az_addons_cons
@@ -106,7 +106,7 @@ class SaasTenant(models.Model):
 
     setup_modules = fields.Char(
         string="Mô-đun Khởi tạo",
-        default="base,mail,hr,project,sale_management,az_construction_management,azhome_saas",
+        default="base,mail,hr,project,sale_management,az_construction_management",
     )
 
     _domain_prefix_uniq = models.Constraint(
