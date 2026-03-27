@@ -37,6 +37,6 @@ desktop.ini
 *.swp
 *.swo
 
-# Docker
-.docker_data/
-docker_build/*/data/
+# Synology
+.Synology*
+**/ .Synology*
