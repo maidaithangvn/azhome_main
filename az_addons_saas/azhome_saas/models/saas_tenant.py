@@ -137,15 +137,19 @@ class SaasTenant(models.Model):
     # ========================================================
     def _get_tenant_cons_addons_path(self):
         """Trả về đường dẫn thực trên Host OS để mount vào Container Tenant."""
+        if IS_WINDOWS:
+            return _DEFAULT_CONS_ADDONS_PATH
         return self.env["ir.config_parameter"].sudo().get_param(
             "azhome_saas.tenant_cons_addons_path", _DEFAULT_CONS_ADDONS_PATH
         )
 
     def _get_tenant_data_host_path(self):
         """Trả về đường dẫn tới thư mục data của Tenant trên Host."""
-        root = self.env["ir.config_parameter"].sudo().get_param(
-            "azhome_saas.tenant_data_root", _DEFAULT_TENANT_DATA_ROOT
-        )
+        root = _DEFAULT_TENANT_DATA_ROOT
+        if not IS_WINDOWS:
+            root = self.env["ir.config_parameter"].sudo().get_param(
+                "azhome_saas.tenant_data_root", _DEFAULT_TENANT_DATA_ROOT
+            )
         # Mỗi tenant một folder riêng theo slug
         path = os.path.join(root, self._get_tenant_slug())
         if not os.path.exists(path):
