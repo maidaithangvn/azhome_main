@@ -90,9 +90,10 @@ class SaasTenant(models.Model):
             )
             tenant.message_post(body=Markup(f"⏰ <b>Nhắc nhở:</b> Gói thuê bao còn 15 ngày."))
 
-    _sql_constraints = [
-        ('domain_prefix_unique', 'unique(domain_prefix)', 'Prefix này đã tồn tại!')
-    ]
+    _domain_prefix_uniq = models.Constraint(
+        'unique(domain_prefix)',
+        'Prefix này đã tồn tại!',
+    )
 
     def unlink(self):
         """Ngăn chặn việc vô tình xóa bản ghi trên giao diện List/Form khi Tenant đang chạy."""

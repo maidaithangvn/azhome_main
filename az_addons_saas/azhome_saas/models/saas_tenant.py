@@ -102,9 +102,10 @@ class SaasTenant(models.Model):
         default="base,mail,hr,project,sale_management,az_construction_management",
     )
 
-    _sql_constraints = [
-        ("domain_prefix_unique", "unique(domain_prefix)", "Prefix này đã tồn tại!")
-    ]
+    _domain_prefix_uniq = models.Constraint(
+        'unique(domain_prefix)',
+        'Prefix này đã tồn tại!',
+    )
 
     # ========================================================
     #  COMPUTED / ONCHANGE
