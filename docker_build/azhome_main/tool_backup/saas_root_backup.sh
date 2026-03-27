@@ -1,8 +1,8 @@
 #!/bin/bash
-# ==========================================
-# 🛡️ AZHOME SAAS - ALL-IN-ONE BACKUP 🛡️
-# 🚀 Tự động nhận diện TOÀN BỘ Database
-# ==========================================
+# ======================================================
+# 🛡️ AZHOME SAAS - OPTIMIZED INDIVIDUAL BACKUP 🛡️
+# 🚀 Backup từng Database + Filestore (No Owner, .backup format)
+# ======================================================
 
 # --- [ CẤU HÌNH ] ---
 PROJECT_DIR="/volume1/docker/azhome_main" 
@@ -17,68 +17,81 @@ DATE=$(date +"%Y%m%d_%H%M%S")
 DAILY_DIR="$BACKUP_ROOT/$DATE"
 mkdir -p "$DAILY_DIR"
 
-# Thư mục tạm
+# Thư mục tạm để đóng gói
 TMP_ROOT="/tmp/az_bk_$DATE"
 mkdir -p "$TMP_ROOT"
 
-echo "======================================"
-echo "🚀 KHỞI CHẠY BACKUP TOÀN DIỆN: $DATE"
-echo "======================================"
+echo "======================================================"
+echo "🚀 KHỞI CHẠY BACKUP TỐI ƯU: $DATE"
+echo "======================================================"
 
-# 1. LẤY DANH SÁCH DATABASE (Lấy tất cả trừ database hệ thống)
-echo "🔍 Đang quét toàn bộ hệ thống Database..."
-DB_LIST=$(docker exec -e PGPASSWORD="$DB_PASS" "$DB_CONTAINER" psql -U "$DB_USER" -d postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres', 'template1');" | tr -d '\r' | xargs)
+# 1. LẤY DANH SÁCH DATABASE
+# Lọc chính xác các DB (Loại bỏ các database hệ thống)
+DB_LIST=$(docker exec -e PGPASSWORD="$DB_PASS" "$DB_CONTAINER" psql -U "$DB_USER" -d postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres', 'template1', 'postgres_exporter');" | tr -d '\r' | xargs)
 
 if [ -z "$DB_LIST" ]; then
     echo "❌ LỖI: Không quét được Database nào!"
 else
     for DB in $DB_LIST; do
-        printf "📂 [%-20s] -> " "$DB"
+        echo "------------------------------------------------------"
+        echo "📂 Đang xử lý: [$DB]"
         TENANT_TMP="$TMP_ROOT/$DB"
         mkdir -p "$TENANT_TMP"
         
-        # A. Dump SQL
-        docker exec -e PGPASSWORD="$DB_PASS" "$DB_CONTAINER" pg_dump -U "$DB_USER" -d "$DB" > "$TENANT_TMP/dump.sql"
-        printf "SQL ok, "
+        # A. Dump Database (Dùng định dạng Custom .backup, nén tốt hơn và linh hoạt hơn)
+        # --no-owner: Loại bỏ quyền sở hữu
+        # --no-privileges: Loại bỏ các quyền truy cập (ACL)
+        # -Fc: Định dạng Custom (chuẩn .backup)
+        docker exec -e PGPASSWORD="$DB_PASS" "$DB_CONTAINER" pg_dump -U "$DB_USER" -d "$DB" --no-owner --no-privileges -Fc > "$TENANT_TMP/dump.backup"
+        echo "   ✅ SQL Backup (.backup) xong."
 
-        # B. Hút Filestore (Tenant vs Master/Dev)
+        # B. Hút Filestore (Lọc đường dẫn chính xác)
         if [[ $DB == azhome_tenant_* ]]; then
-            # Hút từ container Tenant
+            # Nếu là Tenant, lấy từ container của chính nó (Isolation)
             PREFIX=${DB#azhome_tenant_}
             CONT_NAME=$(docker ps --all --filter "name=odoo_tenant_$PREFIX" --format "{{.Names}}" | head -n 1)
             if [ ! -z "$CONT_NAME" ]; then
                 docker cp "$CONT_NAME:/var/lib/odoo/filestore/$DB" "$TENANT_TMP/filestore" 2>/dev/null
-                printf "Filestore container ok, "
+                echo "   ✅ Filestore (Tenant Container) xong."
+            else
+                echo "   ⚠️ CẢNH BÁO: Không thấy container odoo_tenant_$PREFIX, bỏ qua filestore."
             fi
         else
-            # Hút từ Master Data (Dành cho Master/Dev và các DB khác)
+            # Nếu là Master hoặc Dev, lấy từ Volume Master
             if [ -d "$PROJECT_DIR/master_data/filestore/$DB" ]; then
                 cp -r "$PROJECT_DIR/master_data/filestore/$DB" "$TENANT_TMP/filestore"
-                printf "Filestore master volume ok, "
+                echo "   ✅ Filestore (Master Volume) xong."
+            else
+                echo "   ⚠️ CẢNH BÁO: Không thấy thư mục filestore trong Master Volume cho $DB."
             fi
         fi
         
-        # C. Nén phẳng (Chuẩn Odoo Restore)
-        tar -czf "$DAILY_DIR/${DB}.tar.gz" -C "$TENANT_TMP" .
-        printf "Zip ok.\n"
+        # C. Đóng gói chuẩn .tar (Nén lại để dễ di chuyển)
+        tar -cf "$DAILY_DIR/${DB}.tar" -C "$TENANT_TMP" .
+        echo "   ✅ Đóng gói ${DB}.tar hoàn tất."
         
+        # Dọn dẹp thư mục tạm của DB này
         rm -rf "$TENANT_TMP"
     done
 fi
 
-# 2. BACKUP MÃ NGUỒN VÀ DOCKER CONFIG
+# 2. BACKUP MÃ NGUỒN VÀ CẤU HÌNH (Rất quan trọng cho Dev)
+echo "------------------------------------------------------"
 echo "📦 Đóng gói Source Code và Docker Config..."
 tar -czf "$DAILY_DIR/00_source_code_and_config.tar.gz" \
     -C "$PROJECT_DIR" az_addons_cons az_addons_saas docker_build
+echo "   ✅ Xong."
 
 # 3. DỌN DẸP
-echo "🧹 Quét dọn rác và file cũ..."
+echo "------------------------------------------------------"
+echo "🧹 Quét dọn rác và file cũ hơn $MAX_DAYS ngày..."
 rm -rf "$TMP_ROOT"
 sync
 
-# Xóa các thư mục backup cũ hơn MAX_DAYS ngày
+# Xóa các thư mục backup cũ
 find "$BACKUP_ROOT" -maxdepth 1 -type d -mtime +$MAX_DAYS -not -path "$BACKUP_ROOT" -exec rm -rf {} \;
 
-echo "✅ HOÀN TẤT!"
-echo "📍 Tọa độ: $DAILY_DIR"
-echo "======================================"
+echo "======================================================"
+echo "✅ HOÀN TẤT BACKUP!"
+echo "📍 Vị trí: $DAILY_DIR"
+echo "======================================================"
