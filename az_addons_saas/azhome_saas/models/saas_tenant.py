@@ -433,8 +433,17 @@ class SaasTenant(models.Model):
             raise UserError(_("Không thể kết nối Docker: %s") % str(e))
 
         tenant_slug = self._get_tenant_slug()
+        
+        # --- CẤU HÌNH DATABASE (Động cho Windows/Linux) ---
+        conf = self.env["ir.config_parameter"].sudo()
+        
+        # Mặc định trên Windows dùng host.docker.internal, trên Linux dùng db_master (Docker network)
+        default_db_host = "host.docker.internal" if IS_WINDOWS else "db_master"
+        
+        db_host = conf.get_param("azhome_saas.tenant_db_host", default_db_host)
+        db_user = conf.get_param("azhome_saas.tenant_db_user", "openpg" if IS_WINDOWS else "odoo")
+        db_password = conf.get_param("azhome_saas.tenant_db_password", "openpgpwd" if IS_WINDOWS else "odoo_saas_super_secret")
         db_name = f"azhome_tenant_{tenant_slug}"
-        db_password = "odoo_saas_super_secret"
 
         # --- Traefik Labels ---
         labels = {
@@ -451,8 +460,8 @@ class SaasTenant(models.Model):
 
         # --- Environment ---
         env_vars = {
-            "HOST": "db_master",
-            "USER": "odoo",
+            "HOST": db_host,
+            "USER": db_user,
             "PASSWORD": db_password,
             "ODOO_MAX_CRON_THREADS": "1",
             "AZHOME_MAX_USERS": str(self.plan_id.max_users),
@@ -502,6 +511,7 @@ class SaasTenant(models.Model):
             detach=True,
             mem_limit=mem_limit_bytes,
             restart_policy={"Name": "unless-stopped"},
+            extra_hosts={"host.docker.internal": "host-gateway"} if IS_WINDOWS else {},
         )
 
         try:
