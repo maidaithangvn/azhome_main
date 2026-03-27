@@ -40,3 +40,7 @@ desktop.ini
 # Synology
 .Synology*
 **/ .Synology*
+
+# Tenant Data
+tenant_data/
+dev_data/

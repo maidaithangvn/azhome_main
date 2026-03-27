@@ -200,8 +200,11 @@
                                     </li>
                                     <li class="list-group-item">
                                         <strong>Thực hiện Restore trên Máy chủ (Host):</strong> <br/>
-                                        Dùng pgAdmin hoặc dòng lệnh: <br/>
-                                        <span class="az-code">pg_restore -U openpg -d azhome_tenant_khach_a --no-owner file_backup.backup</span>
+                                        Dùng pgAdmin hoặc dòng lệnh (Khuyên dùng file .backup): <br/>
+                                        <div class="az-code mt-1 p-2 bg-dark text-light rounded" style="font-size: 0.8em;">
+                                            &amp; "F:\THANG2022\ODOO19_2026\PostgreSQL\15\bin\pg_restore.exe" -U openpg -d azhome_tenant_khach_a --no-owner dump.backup
+                                        </div>
+                                        Nếu là file .sql, dùng: <span class="az-code">psql -U openpg -d db_name &lt; dump.sql</span>
                                     </li>
                                     <li class="list-group-item">
                                         <strong>Khôi phục Filestore:</strong> <br/>

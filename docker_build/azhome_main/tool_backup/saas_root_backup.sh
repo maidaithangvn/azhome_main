@@ -38,12 +38,15 @@ else
         TENANT_TMP="$TMP_ROOT/$DB"
         mkdir -p "$TENANT_TMP"
         
-        # A. Dump Database (Dùng định dạng Custom .backup, nén tốt hơn và linh hoạt hơn)
+        # A. Dump Database (Dùng định dạng Custom .backup)
         # --no-owner: Loại bỏ quyền sở hữu
         # --no-privileges: Loại bỏ các quyền truy cập (ACL)
         # -Fc: Định dạng Custom (chuẩn .backup)
-        docker exec -e PGPASSWORD="$DB_PASS" "$DB_CONTAINER" pg_dump -U "$DB_USER" -d "$DB" --no-owner --no-privileges -Fc > "$TENANT_TMP/dump.backup"
-        echo "   ✅ SQL Backup (.backup) xong."
+        # Lưu file vào /tmp bên trong container rồi mới copy ra để tránh lỗi ký tự binary trên shell
+        docker exec -e PGPASSWORD="$DB_PASS" "$DB_CONTAINER" pg_dump -U "$DB_USER" -d "$DB" --no-owner --no-privileges -Fc -f "/tmp/dump.backup"
+        docker cp "$DB_CONTAINER:/tmp/dump.backup" "$TENANT_TMP/dump.backup"
+        docker exec "$DB_CONTAINER" rm "/tmp/dump.backup"
+        echo "   ✅ SQL Backup (Custom Format .backup) xong."
 
         # B. Hút Filestore (Lọc đường dẫn chính xác)
         if [[ $DB == azhome_tenant_* ]]; then
