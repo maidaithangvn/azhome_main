@@ -29,6 +29,13 @@ _DEFAULT_CONS_ADDONS_PATH = (
     else "F:/THANG2022/ODOO19_2026/server/azhome_main/az_addons_cons"
 )
 
+# Đường dẫn chứa dữ liệu Filestore cho từng khách hàng
+_DEFAULT_TENANT_DATA_ROOT = (
+    "/volume1/docker/azhome_main/tenant_data"
+    if IS_LINUX
+    else "F:/THANG2022/ODOO19_2026/server/azhome_main/tenant_data"
+)
+
 
 class SaasTenant(models.Model):
     _name = "saas.tenant"
@@ -129,17 +136,24 @@ class SaasTenant(models.Model):
     #  HELPER: Lấy đường dẫn Addons trên Host (cho Tenant)
     # ========================================================
     def _get_tenant_cons_addons_path(self):
-        """Trả về đường dẫn thực trên Host OS để mount vào Container Tenant.
-        Ưu tiên System Parameter, fallback theo nền tảng OS.
-        """
-        return (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param(
-                "azhome_saas.tenant_cons_addons_path",
-                _DEFAULT_CONS_ADDONS_PATH,
-            )
+        """Trả về đường dẫn thực trên Host OS để mount vào Container Tenant."""
+        return self.env["ir.config_parameter"].sudo().get_param(
+            "azhome_saas.tenant_cons_addons_path", _DEFAULT_CONS_ADDONS_PATH
         )
+
+    def _get_tenant_data_host_path(self):
+        """Trả về đường dẫn tới thư mục data của Tenant trên Host."""
+        root = self.env["ir.config_parameter"].sudo().get_param(
+            "azhome_saas.tenant_data_root", _DEFAULT_TENANT_DATA_ROOT
+        )
+        # Mỗi tenant một folder riêng theo slug
+        path = os.path.join(root, self._get_tenant_slug())
+        if not os.path.exists(path):
+            try:
+                os.makedirs(path, exist_ok=True)
+            except Exception:
+                pass
+        return path
 
     def _get_tenant_slug(self):
         """Chuẩn hóa tên slug cho container/database."""
@@ -475,11 +489,14 @@ class SaasTenant(models.Model):
 
         # --- Volume Mounts (Chuẩn hóa theo cấu trúc mới) ---
         cons_addons_path = self._get_tenant_cons_addons_path()
+        tenant_data_path = self._get_tenant_data_host_path()
+        
         docker_mounts = {
             cons_addons_path: {"bind": "/mnt/extra-addons", "mode": "ro"},
+            tenant_data_path: {"bind": "/var/lib/odoo", "mode": "rw"},
         }
         _logger.info(
-            f"[SaaS] Tenant addons mount: {cons_addons_path} -> /mnt/extra-addons"
+            f"[SaaS] Tenant mounts: Addons={cons_addons_path}, Data={tenant_data_path}"
         )
 
         # --- Command ---

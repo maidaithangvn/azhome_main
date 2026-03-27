@@ -55,6 +55,7 @@
                                 <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-env">2.5. Môi trường Dev/Prod</a></li>
                                 <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-backup">2.6. Hệ thống Sao lưu (Backup)</a></li>
                                 <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-pdf">2.7. Cài đặt in PDF (wkhtmltopdf)</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-restore">2.8. Quy trình Phục hồi (Restore)</a></li>
                             </ul>
 
                             <h5 class="px-3 mt-4 mb-2 text-success fw-bold">KIẾN TRÚC CLIENT</h5>
@@ -181,13 +182,41 @@
                             </div>
 
                             <div id="dep-backup" class="mb-4">
-                                <h3 class="az-h3"><i class="fa fa-database text-success me-2"></i> 2.6. Hệ thống Sao lưu (Backup) Master Toàn Năng</h3>
-                                <p>Copy/paste trực tiếp cấu trúc folder Filestore khi máy chủ Database đang chạy sẽ khiến File rách nát (Corruption) khó phục hồi.</p>
+                                <h3 class="az-h3"><i class="fa fa-database text-success me-2"></i> 2.6. Hệ thống Sao lưu (Backup)</h3>
+                                <p class="text-muted">Đảm bảo an toàn dữ liệu định kỳ trên cả Linux và Windows.</p>
                                 <ul>
-                                    <li><strong>Hút tủy SQL:</strong> Chạy BASH Script dùng <span class="az-code">docker exec db_master pg_dumpall -c -U odoo</span> để hút máu toàn bộ luồng PostgreSQL của mẹ và trăm ông con.</li>
-                                    <li><strong>Đóng gói Filestore:</strong> Nén toàn bộ rễ thư mục <span class="az-code">tenant_data</span> và <span class="az-code">master_data</span> (Loại bỏ tuyệt đối thư mục nhạy cảm CSDL Raw Postgres). Đặt Task Scheduler trên NAS/VPS chạy Auto lúc 2:00 AM sáng.</li>
-                                    <li><strong>Chiêu thức Rót Data (Bơm Khuôn Mẫu):</strong> Trên Manager Odoo, xóa Vỏ Rỗng Database nháp sinh ra lúc khởi tạo, click Restore nạp file Data ZIP trùm mẫu và Đặt Tên Bằng Khít Khuôn Xương (Exact Match). Docker tự động bốc Trúng Data Khang trang phô diễn lên mặt Khách hàng.</li>
+                                    <li><strong>Trên Linux/NAS:</strong> Chạy BASH Script dùng <span class="az-code">docker exec db_master pg_dumpall</span>. Nén thư mục <span class="az-code">filestore</span> và đẩy lên mây.</li>
+                                    <li><strong>Trên Windows:</strong> Sử dụng công cụ <span class="az-code">pg_dump</span> của PostgreSQL 15 đã cài sẵn. Khuyên dùng định dạng <span class="az-code">.backup</span> (custom format) để linh hoạt khi restore từng phần.</li>
+                                    <li><strong>Lưu ý Filestore:</strong> Copy trực tiếp thư mục Odoo data khi đang chạy có thể lỗi. Nên dùng lệnh rsync hoặc nén zip khi Odoo đang ít người dùng.</li>
                                 </ul>
+                            </div>
+
+                            <div id="dep-restore" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-refresh text-info me-2"></i> 2.8. Quy trình Phục hồi dữ liệu Tenant (Restore)</h3>
+                                <p class="text-muted">Dùng khi cần chuyển dữ liệu khách hàng từ máy khác sang hoặc cứu hộ dữ liệu.</p>
+                                <ol class="list-group list-group-numbered mt-2 shadow-sm rounded">
+                                    <li class="list-group-item">
+                                        <strong>Chuẩn bị Database:</strong> Đảm bảo tên database phải có tiền tố <span class="az-code">azhome_tenant_</span> (vd: <span class="az-code">azhome_tenant_khach_a</span>).
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Thực hiện Restore trên Máy chủ (Host):</strong> <br/>
+                                        Dùng pgAdmin hoặc dòng lệnh: <br/>
+                                        <span class="az-code">pg_restore -U openpg -d azhome_tenant_khach_a --no-owner file_backup.backup</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Khôi phục Filestore:</strong> <br/>
+                                        Giải nén thư mục <span class="az-code">filestore</span> từ bản backup vào đường dẫn: <br/>
+                                        <span class="az-code">F:/THANG2022/ODOO19_2026/server/azhome_main/tenant_data/khach_a/filestore/</span> (trên Windows) <br/>
+                                        Hoặc: <span class="az-code">/volume1/docker/azhome_main/tenant_data/khach_a/filestore/</span> (trên NAS)
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Đăng ký trên SaaS Master:</strong> <br/>
+                                        Vào menu SaaS -> Tenants. Tạo bản ghi mới với <strong>Domain Prefix</strong> trùng với tên database vừa restore (vd: <span class="az-code">khach_a</span>).
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Kích hoạt:</strong> Bấm nút <span class="az-highlight">Khởi tạo Tenant</span>. Docker sẽ tạo container mới, tự động kết nối vào Database đã có sẵn và thực hiện nâng cấp module cần thiết.
+                                    </li>
+                                </ol>
                             </div>
 
                             <div id="dep-pdf" class="mb-4">
