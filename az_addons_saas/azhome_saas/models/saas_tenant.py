@@ -106,7 +106,7 @@ class SaasTenant(models.Model):
 
     setup_modules = fields.Char(
         string="Mô-đun Khởi tạo",
-        default="base,mail,hr,project,sale_management,az_construction_management",
+        default="base,mail,hr,project,sale_management,az_construction_management,azhome_saas",
     )
 
     _domain_prefix_uniq = models.Constraint(
@@ -226,10 +226,15 @@ class SaasTenant(models.Model):
         tenant_slug = self._get_tenant_slug()
         container_name = f"odoo_tenant_{tenant_slug}_{self.port}"
 
-        # Thử nhiều URL: localhost (Windows Host) → Container DNS (Docker network)
+        # Thử các URL để kết nối:
+        # 1. host.docker.internal (Nếu Master chạy trong Docker trên Windows)
+        # 2. localhost (Nếu Master chạy trực tiếp trên Host Windows/Linux)
+        # 3. Container Name (Nếu Master và Tenant cùng network az_saas_network)
         urls_to_try = [
+            f"http://host.docker.internal:{self.port}/azhome/tenant_stats",
             f"http://localhost:{self.port}/azhome/tenant_stats",
             f"http://{container_name}:8069/azhome/tenant_stats",
+            f"http://127.0.0.1:{self.port}/azhome/tenant_stats",
         ]
 
         payload = {

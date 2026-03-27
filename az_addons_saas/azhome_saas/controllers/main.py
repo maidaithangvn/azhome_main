@@ -33,6 +33,33 @@ class SaasStatsController(http.Controller):
         
         return {'status': 'error', 'message': 'Tenant not found'}
 
+    @http.route('/azhome/tenant_stats', type='json', auth='none', methods=['POST'], csrf=False)
+    def tenant_stats(self, **post):
+        """
+        Endpoint trên máy con (Tenant) để máy Master gọi vào lấy thông tin.
+        """
+        # Đếm số lượng user thực tế (Active và không phải Portal/Public)
+        user_count = request.env['res.users'].sudo().search_count([
+            ('active', '=', True), 
+            ('share', '=', False)
+        ])
+        
+        # Lấy dung lượng cơ sở dữ liệu (MB)
+        try:
+            request.env.cr.execute("SELECT pg_database_size(current_database())")
+            db_size = request.env.cr.fetchone()[0]
+            db_size_mb = round(db_size / (1024 * 1024), 2)
+        except Exception:
+            db_size_mb = 0
+            
+        return {
+            'status': 'success',
+            'stats': {
+                'user_count': user_count,
+                'disk_usage_mb': db_size_mb
+            }
+        }
+
 
 class AzHomeSaasManualController(http.Controller):
 
