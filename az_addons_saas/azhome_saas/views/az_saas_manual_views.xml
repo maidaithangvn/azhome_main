@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_azhome_saas_manual_url" model="ir.actions.act_url">
+        <field name="name">Cẩm nang Triển khai Hệ thống (Kỹ thuật)</field>
+        <field name="url">/azhome_saas/manual</field>
+        <field name="target">new</field>
+    </record>
+
+    <template id="azhome_saas_manual_template" name="AzHome SaaS Tech &amp; Maintenance Guide">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <title>Tài liệu Triển khai - AzHome SaaS Master</title>
+                <t t-call-assets="web.assets_backend" t-js="false" />
+                <style>
+                    body { background-color: #f8f9fa; }
+                    .az-sidebar {
+                        position: fixed; top: 0; bottom: 0; left: 0; z-index: 100;
+                        padding: 48px 0 0; box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+                        background-color: white; overflow-y: auto;
+                    }
+                    .az-sidebar-sticky { position: relative; top: 0; height: calc(100vh - 48px); padding-top: .5rem; overflow-x: hidden; overflow-y: auto; }
+                    .az-nav-link { font-weight: 500; color: #333; padding: 0.5rem 1rem; display: block; text-decoration: none; }
+                    .az-nav-link:hover { color: #716cb0; background-color: #f8f9fa; }
+                    .az-nav-item .az-nav-link { font-size: 0.95rem; }
+                    .az-nav-subitem .az-nav-link { font-size: 0.85rem; padding-left: 2rem; color: #6c757d; }
+                    .az-nav-subitem .az-nav-link:hover { color: #716cb0; }
+                    .az-main-content { margin-left: 25%; padding: 2rem; background: transparent; }
+                    .az-card { border: none; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06); margin-bottom: 2rem; background: white; padding: 2rem; }
+                    .az-section-title { border-bottom: 2px solid #716cb0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: #2c3e50; font-weight: 600; }
+                    .az-h3 { color: #495057; font-weight: 600; margin-top: 1.5rem; }
+                    .az-code { background-color: #f1f3f5; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.875em; color: #d63384; font-family: monospace; }
+                    .az-step { background: #007bff; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; margin-right: 10px; font-size: 0.8rem; }
+                    .az-highlight { background-color: #fff3cd; padding: 2px 6px; border-radius: 4px; font-weight: 600; color: #856404; }
+                </style>
+            </t>
+
+            <div class="container-fluid o_azhome_saas_manual">
+                <div class="row">
+                    <!-- Sidebar -->
+                    <nav id="sidebarMenu" class="col-md-3 col-lg-3 d-md-block az-sidebar collapse">
+                        <div class="az-sidebar-sticky pt-3">
+                            <h5 class="px-3 mt-4 mb-2 text-primary fw-bold">AZHOME SAAS MASTER</h5>
+                            <ul class="nav flex-column mb-3">
+                                <li class="az-nav-item"><a class="az-nav-link" href="#sec-overview">1. Kiến trúc SaaS Master</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#mod-plans">1.1. Gói cước (saas.plan)</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#mod-tenants">1.2. Máy con (saas.tenant)</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#mod-stats">1.3. Đồng bộ Thống kê</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#mod-destroy">1.4. Hủy Dữ liệu (Destroy)</a></li>
+                                
+                                <li class="az-nav-item"><a class="az-nav-link" href="#sec-deploy">2. Triển khai XPEnology/Linux</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-network">2.1. Mạng &amp; Quyền (chmod)</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-addons">2.2. Cách ly Mã nguồn</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-error">2.3. Sửa lỗi HĐH &amp; SSL</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-traefik">2.4. Traefik, Wildcard DNS &amp; IP</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-env">2.5. Môi trường Dev/Prod</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-backup">2.6. Hệ thống Sao lưu (Backup)</a></li>
+                                <li class="az-nav-subitem"><a class="az-nav-link" href="#dep-pdf">2.7. Cài đặt in PDF (wkhtmltopdf)</a></li>
+                            </ul>
+
+                            <h5 class="px-3 mt-4 mb-2 text-success fw-bold">KIẾN TRÚC CLIENT</h5>
+                            <ul class="nav flex-column mb-3">
+                                <li class="az-nav-item"><a class="az-nav-link" href="#user-construction">3. Cấu trúc Module Xây Dựng</a></li>
+                            </ul>
+
+                            <h5 class="px-3 mt-4 mb-2 text-danger fw-bold">SỰ CỐ KỸ THUẬT</h5>
+                            <ul class="nav flex-column mb-2">
+                                <li class="az-nav-item"><a class="az-nav-link" href="#trouble">4. Lỗi Vận hành &amp; API</a></li>
+                            </ul>
+                        </div>
+                    </nav>
+
+                    <!-- Main Content -->
+                    <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4 az-main-content">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                            <h1 class="h2 text-primary fw-bold">Cẩm nang Chuyên viên Triển khai - SaaS Master 🛠️</h1>
+                        </div>
+
+                        <div class="alert alert-info shadow-sm rounded">
+                            Tài liệu này dùng để đào tạo <strong>Kỹ thuật viên System Admin</strong> cách cấu hình, cấp phát máy chủ ảo (Docker Container) và bảo trì hệ thống AzHome SaaS dành cho Odoo 19. Vui lòng đọc kỹ các cấu trúc Python Model để kiểm soát luồng xử lý dữ liệu.
+                        </div>
+
+                        <!-- SECTION 1 -->
+                        <div id="sec-overview" class="az-card">
+                            <h2 class="az-section-title">1. Kiến trúc Dữ liệu SaaS (Mô hình Multi-Tenant)</h2>
+                            <p>AzHome SaaS Master cấp phát mỗi khách hàng một hệ thống Odoo độc lập thông qua Docker, sử dụng mạng chia sẻ nhưng tách biệt hoàn toàn Database (DB isolated).</p>
+                            
+                            <div id="mod-plans" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-cubes text-primary me-2"></i> 1.1. Quản lý Gói cước (<span class="az-code">saas.plan</span>)</h3>
+                                <p class="text-muted">Định nghĩa cấu hình phần cứng và giới hạn tài nguyên cho khách.</p>
+                                <ul>
+                                    <li><strong>Model:</strong> <span class="az-code">saas.plan</span></li>
+                                    <li><strong>Trường dữ liệu:</strong> <span class="az-code">max_users</span> (Số lượng User tối đa), <span class="az-code">max_db_size_gb</span> (Dung lượng ổ cứng cho phép).</li>
+                                    <li><strong>Logic:</strong> Gói cước quyết định trực tiếp đến định cấu hình tham số truyền vào lệnh <span class="az-code">docker run</span>.</li>
+                                </ul>
+                            </div>
+
+                            <div id="mod-tenants" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-server text-warning me-2"></i> 1.2. Máy con Khách hàng (<span class="az-code">saas.tenant</span>)</h3>
+                                <p class="text-muted">Trung tâm điều khiển vòng đời cấp phát và hủy duyệt máy chủ.</p>
+                                <ul>
+                                    <li><strong>Model:</strong> <span class="az-code">saas.tenant</span></li>
+                                    <li><strong>Hành động Provision:</strong> Hàm <span class="az-code">action_provision_tenant()</span> sử dụng socket gốc (`/var/run/docker.sock`), gọi thư viện <span class="az-code">docker-py</span> để kéo image Postgres và Odoo Master, mount các ổ đĩa và gán IP.</li>
+                                    <li><strong>Môi Trường Bảo Mật (ENV):</strong> Các biến <span class="az-code">AZHOME_EXPIRY_DATE</span> và <span class="az-code">AZHOME_MAX_USERS</span> được đẩy thẳng vào Container. Module vệ sĩ (<span class="az-code">azhome_saas_security</span>) sẽ hook thẳng vào hàm `create` trên <span class="az-code">res.users</span> để CHẶN tạo mới user nếu gói đã full.</li>
+                                    <li><strong>Hạ gói kiểm soát:</strong> Wizard <span class="az-code">saas.tenant.upgrade.wizard</span> sẽ block quá trình hạ cấp nếu số User thực tế trong máy con đang lớn hơn Max User của gói mục tiêu.</li>
+                                </ul>
+                            </div>
+
+                            <div id="mod-stats" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-line-chart text-success me-2"></i> 1.3. Đồng bộ Thống kê (Cron &amp; RPC Push/Pull)</h3>
+                                <p class="text-muted">Cơ chế giám sát tài nguyên của hàng trăm Tenant mà không cần query trực tiếp DB của họ.</p>
+                                <ul>
+                                    <li><strong>Model:</strong> <span class="az-code">saas.usage.record</span> lưu trữ dòng thời gian lịch sử RAM, CPU, Users hằng giờ.</li>
+                                    <li><strong>Cơ chế Pull:</strong> Master có nút "Cập nhật Thống kê" chạy thư viện <span class="az-code">requests.get()</span> gọi thẳng vào Rest-API <span class="az-code">/saas/stats</span> của máy con để lấy JSON Data cập nhật bảng điều khiển.</li>
+                                    <li><strong>Cron Job Gia Hạn:</strong> Chạy hàng ngày cảnh báo 15 ngày trước khi <span class="az-code">expiration_date</span> trôi qua. Tự động sinh <span class="az-code">mail.activity</span> hối thúc Nhân viên Sales phụ trách gọi điện đòi tiền.</li>
+                                </ul>
+                            </div>
+
+                            <div id="mod-destroy" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-trash text-danger me-2"></i> 1.4. Hủy Dữ liệu (Destroy Tenant)</h3>
+                                <p class="text-muted">Quy trình dọn rác và xóa sổ hoàn toàn một khách hàng khỏi hệ thống.</p>
+                                <ul>
+                                    <li><strong>Phân quyền (Mật):</strong> Chỉ những tài khoản được cấp quyền <span class="az-highlight">SaaS - Kỹ thuật (Root)</span> mới nhìn thấy và dùng được nút xóa. Che dấu an toàn trước Mắt Sales và Admin thông thường để chống phá hoại.</li>
+                                    <li><strong>Cơ chế Xóa DB:</strong> Gọi trực tiếp lệnh <span class="az-code">dropdb</span> vào container <span class="az-code">db_master</span> qua Docker Engine. Đảm bảo bay sạch số liệu kế toán PostgreSQL.</li>
+                                    <li><strong>Dọn Rác Ổ Cứng (Filestore):</strong> Lệnh <span class="az-code">container.remove(v=True)</span> chứa tham số vàng <span class="az-code">v=True</span> giúp càn quét toàn bộ các Anonymous Volumes (nơi Odoo chứa file đính kèm, ảnh, session) trả lại dung lượng trống cho máy chủ NAS/VPS.</li>
+                                    <li><strong>Trạng thái:</strong> Dữ liệu KHÔNG thể khôi phục (trừ khi có Backup). Bản ghi Khách hàng được trả về trạng thái Nháp (Draft).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 2 -->
+                        <div id="sec-deploy" class="az-card">
+                            <h2 class="az-section-title">2. Khắc phục Triển khai XPEnology / Linux</h2>
+                            <p>Odoo 19 Master phải được thiết lập tối ưu trên NAS XPEnology (DSM 7+) hoặc hệ điều hành Ubuntu Server.</p>
+                            
+                            <div id="dep-network" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-shield text-info me-2"></i> 2.1. Mạng Docker &amp; Lỗi Trang Trắng</h3>
+                                <ul>
+                                    <li>Tạo trước mạng cầu nối (bridge) <span class="az-code">az_saas_network</span> từ Terminal. Mạng này cho phép Traefik hoặc Nginx đứng chặn đầu xoay IP (Reverse Proxy).</li>
+                                    <li><strong>Lỗi Mất Giao Diện (White Page 403 / 500):</strong> Trên hệ điều hành NAS, user nội bộ chạy Odoo (<span class="az-code">UID 104</span>) thường bị NAS Server cấm dọc thư mục do quyền NTFS/Ext4. Bắt buộc mở băng thông quyền lực tối đa: <br/> <strong class="az-code bg-dark text-light p-2 mt-2 d-inline-block rounded">chmod -R 777 /volume1/docker/azhome_saas</strong>.</li>
+                                </ul>
+                            </div>
+
+                            <div id="dep-addons" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-folder-open text-primary me-2"></i> 2.2. Cách ly Mã nguồn SaaS Master</h3>
+                                <p>Để tránh lộ bài toán lõi vận hành hệ thống, khách hàng TUYỆT ĐỐI KHÔNG được phép đọc mã nguồn của app bộ SaaS Master.</p>
+                                <ul>
+                                    <li><strong>Cơ sở Thư mục:</strong> Tạo 2 thư mục rời rạc: <span class="az-code">master_addons</span> (chỉ mount vào System Odoo Master) và thư mục <span class="az-code">addons</span> (chứa source Khách, sẽ được đẩy vào CẢ master và tenants).</li>
+                                    <li><strong>Cấu hình Hệ thống (System Parameters):</strong> Thay vì code cứng Windows (<span class="az-code">F:/...</span>), Kỹ thuật viên phải vào `Thiết lập -> Kỹ thuật -> Tham số hệ thống` khai báo chuẩn xác: <span class="az-code">azhome_saas.addons_path</span> và <span class="az-code">azhome_saas.tenant_addons_path</span> trỏ tới /volume1/... trên NAS.</li>
+                                </ul>
+                            </div>
+
+                            <div id="dep-error" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-bug text-danger me-2"></i> 2.3. Lỗi Hệ điều hành &amp; Cập nhật SSL</h3>
+                                <ol class="list-group list-group-numbered mt-2 shadow-sm rounded">
+                                    <li class="list-group-item"><strong>Lỗi Tải Docker Image (x509: certificate signed by unknown authority):</strong><br/>
+                                    Xảy ra do NAS quá cũ hết hạn root CA Trust. Chạy dòng lệnh sau để kéo thủ công file .pem mới: <br/>
+                                    <span class="az-code">curl -k -o /etc/ssl/certs/ca-certificates.crt https://curl.se/ca/cacert.pem</span> <br/>
+                                    Sau đó khởi động lại gói Synology Docker.</li>
+                                    <li class="list-group-item"><strong>Lỗi Crash Hệ Thống (Fatal glibc error: cannot get entropy for arc4random):</strong><br/>
+                                    Lỗi phần cứng ác mộng do Odoo 19 chạy cực kỳ mới (Debian 12 Bookworm), gọi hàm <span class="az-code">getrandom()</span> mà trên Kernel 3.10 của XPEnology đời đầu cấm tiệt. <span class="az-highlight">Giải pháp bắt buộc:</span> Nâng cấp bootloader lên ARC/TCRP cho DSM 7.2 (Sở hữu Kernel > 4.4). Code Odoo hoặc Docker arg không cứu được lỗi OS này!</li>
+                                </ol>
+                            </div>
+
+                            <div id="dep-traefik" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-globe text-primary me-2"></i> 2.4. Traefik, Wildcard DNS &amp; IP</h3>
+                                <p>Hệ thống xử lý định tuyến tự động khi cấp phát Tenant không cần mở thêm Port rườm rà.</p>
+                                <ul>
+                                    <li><strong>Wildcard DNS &amp; DuckDNS:</strong> Bắt buộc trỏ bản ghi CNAME <span class="az-code">*</span> về địa chỉ tên miền động DuckDNS để tiếp nhận mọi request tên miền mới được sinh ra từ khách hàng.</li>
+                                    <li><strong>Lách cổng NAT Loopback &amp; Port 80:</strong> Trên Synology NAS, cấm dùng Port 80 nội bộ do đụng độ hệ điều hành gốc. Phải NAT (Port Forwarding) <span class="az-code">WAN:80 -> LAN:8081</span> trên Modem Viettel/FPT. Lắp Traefik lắng nghe tại 8081. Khi test bằng máy tính nội bộ LAN phải xài tuyệt chiêu gõ port 8081 trực tiếp, hoặc dùng 4G điện thoại để vượt ngẽn NAT Loopback.</li>
+                                    <li><strong>Ghim IP Tĩnh (Static IP):</strong> Trên NAS, dùng Control Panel -> Network Interface -> Edit -> Use manual configuration để ghim cứng IP LAN (vd: 192.168.1.177) chặn mất kết nối Port Forwarding mỗi khi mất điện khởi động lại mạng.</li>
+                                </ul>
+                            </div>
+
+                            <div id="dep-env" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-cogs text-warning me-2"></i> 2.5. Phân mảnh Môi trường Dev/Prod</h3>
+                                <p>Tuyệt đối không gõ code trên môi trường Production để chặn đứng nguy cơ Crash Dây Chuyền cả hệ thống.</p>
+                                <ul>
+                                    <li><strong>Production kiếm tiền (Cổng 8069):</strong> Chỉ chứa Data lõi khách hàng (<span class="az-code">azhome_master</span>). Addons được mount cứng cố định, cấm mở VSCode sửa file. Gắn Traefik Label vào container <span class="az-code">odoo_master</span> để routing gọi tên miền Dashboard từ xa <span class="az-code">boss.azhome.top</span>.</li>
+                                    <li><strong>Dev Lab bãi rác trải nghiệm (Cổng 8079):</strong> Chạy một Odoo Container dự án phân rã hoàn toàn độc lập, chọc vòi xài chung <span class="az-code">db_master</span> nhưng nhân bản Duplicate cục Database riêng tên <span class="az-code">dev_lab</span> để vọc vạch tính năng Docker API. Bắt buộc vào Môi trường khai báo biến <span class="az-code">azhome_saas.tenant_addons_path</span> trỏ về thư mục Test riêng lẻ nhằm cách ly khỏi Prod!</li>
+                                </ul>
+                            </div>
+
+                            <div id="dep-backup" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-database text-success me-2"></i> 2.6. Hệ thống Sao lưu (Backup) Master Toàn Năng</h3>
+                                <p>Copy/paste trực tiếp cấu trúc folder Filestore khi máy chủ Database đang chạy sẽ khiến File rách nát (Corruption) khó phục hồi.</p>
+                                <ul>
+                                    <li><strong>Hút tủy SQL:</strong> Chạy BASH Script dùng <span class="az-code">docker exec db_master pg_dumpall -c -U odoo</span> để hút máu toàn bộ luồng PostgreSQL của mẹ và trăm ông con.</li>
+                                    <li><strong>Đóng gói Filestore:</strong> Nén toàn bộ rễ thư mục <span class="az-code">tenant_data</span> và <span class="az-code">master_data</span> (Loại bỏ tuyệt đối thư mục nhạy cảm CSDL Raw Postgres). Đặt Task Scheduler trên NAS/VPS chạy Auto lúc 2:00 AM sáng.</li>
+                                    <li><strong>Chiêu thức Rót Data (Bơm Khuôn Mẫu):</strong> Trên Manager Odoo, xóa Vỏ Rỗng Database nháp sinh ra lúc khởi tạo, click Restore nạp file Data ZIP trùm mẫu và Đặt Tên Bằng Khít Khuôn Xương (Exact Match). Docker tự động bốc Trúng Data Khang trang phô diễn lên mặt Khách hàng.</li>
+                                </ul>
+                            </div>
+
+                            <div id="dep-pdf" class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-file-pdf-o text-danger me-2"></i> 2.7. Cài đặt Môi trường In PDF (wkhtmltopdf có Patched QT)</h3>
+                                <p>Để Odoo xuất HTML thành định dạng PDF hiển thị Header, Footer (có Logo) và CSS định dạng chuẩn xác, trình điều khiển bắt buộc phải mang tính năng <strong>Patched QT</strong>. Trớ trêu là bản cài thường của Linux/Ubuntu đã bị cắt bỏ module này.</p>
+                                <ul>
+                                    <li><strong>Bước 1 - Chui vào Lõi Hệ thống:</strong><br/>
+                                        Sau khi SSH vào NAS bằng Terminal, chui vào root của Container bằng lệnh (đổi tên tương đương nếu là <span class="az-code">odoo_dev_lab</span>):
+                                        <div class="az-code mt-1 p-2 bg-dark text-light rounded">docker exec -u root -it odoo_master bash</div>
+                                    </li>
+                                    <li><strong>Bước 2 - Lệnh Cài Đặt Vá (Bắt buộc dùng bản Jammy):</strong><br/>
+                                        Do Github đã ngừng cấp file cho Ubuntu 24.04 (Noble), chúng ta buộc dùng gói của bản 22.04 (Jammy) để lắp ráp (chạy nguyên 1 khối lệnh):
+                                        <div class="az-code mt-1 p-2 bg-dark text-light rounded" style="word-break: break-all; font-size: 0.85em;">
+                                        apt-get update &amp;&amp; apt-get --fix-broken install -y &amp;&amp; apt-get install -y wget fontconfig libxrender1 xfonts-75dpi xfonts-base &amp;&amp; wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb &amp;&amp; apt-get install -y ./wkhtmltox_0.12.6.1-3.jammy_amd64.deb &amp;&amp; cp /usr/local/bin/wkhtmlto* /usr/bin/ &amp;&amp; rm wkhtmltox_*.deb
+                                        </div>
+                                    </li>
+                                    <li><strong>Bước 3 - Xác nhận Khai thông (Cực đỏ):</strong><br/>
+                                        Kiểm tra bằng lệnh <span class="az-code">wkhtmltopdf --version</span>. Chừng nào màn hình văng ra chữ <span class="text-success fw-bold">(with patched qt)</span> thì mới dừng ăn mừng.
+                                    </li>
+                                    <li><strong>Bước 4 - Reset và Routing nội bộ:</strong><br/>
+                                        Gõ <span class="az-code">exit</span> để thoát lõi, và nhấn <span class="az-code">docker restart odoo_master</span>. Cuối cùng tiến vào Odoo giao diện Cài đặt Kỹ thuật -> Tham số hệ thống: thiết lập biến mạng cục bộ <span class="az-code">report.url</span> thành <span class="az-code">http://127.0.0.1:8069</span>.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3 (Architecture of Construction for Tech Staff) -->
+                        <div id="user-construction" class="az-card">
+                            <h2 class="az-section-title">3. Kiến trúc Kỹ thuật Module Khách hàng (AzHome Xây Dựng)</h2>
+                            <p>Phần này dành riêng cho Kỹ sư triển khai để hiểu cách thiết kế Database và luồng truy vấn (Query Flow) bên trong các Tenant.</p>
+                            
+                            <div class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-users text-primary me-2"></i> 3.1. Phân hệ Nhân công (Employee Payroll)</h3>
+                                <ul>
+                                    <li><span class="az-code">az.hr.contract</span> (Hợp đồng): Quy định đơn giá ngày và phụ cấp. Core config.</li>
+                                    <li><span class="az-code">account.analytic.line</span> (Chấm công): Bổ sung liên kết bảng lương, khóa dòng khi đã hạch toán để chống sửa đổi báo cáo.</li>
+                                    <li><span class="az-code">az.employee.advance</span> (Tạm ứng): Theo dõi tiền ứng phiếu, tự động khấu trừ bảng lương của worker.</li>
+                                    <li><span class="az-code">az.payroll</span> (Bảng lương): Tự động tính toán, khấu trừ, sinh bút toán kế toán Nợ 622, Có 334.</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-truck text-warning me-2"></i> 3.2. Phân hệ Máy móc (Equipment)</h3>
+                                <ul>
+                                    <li><span class="az-code">az.equipment</span>: Danh mục máy móc thiết bị thi công được chuẩn hóa.</li>
+                                    <li><span class="az-code">az.equipment.timesheet</span>: Chấm ca máy hoạt động tại công trường.</li>
+                                    <li><span class="az-code">az.equipment.payroll</span>: Tập hợp ca máy để hạch toán vào chi phí thi công của dự án.</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-handshake-o text-success me-2"></i> 3.3. Phân hệ Thầu phụ (Subcontractor)</h3>
+                                <p class="text-muted">Xử lý logic phức tạp nhất của luồng tiền ra (Outflow): Giữ lại bảo hành và trừ tiền vật tư cấp hộ.</p>
+                                <ul>
+                                    <li><span class="az-code">az.subcontract.contract</span>: Hợp đồng chứa các thông số Giá trị, % Tạm ứng, % Bảo hành.</li>
+                                    <li><span class="az-code">az.subcontract.advance</span> / <span class="az-code">az.subcontract.material</span>: Quản lý ứng tiền và xuất vật tư từ kho tổng.</li>
+                                    <li><span class="az-code">az.subcontract.acceptance</span>: Nghiệm thu tự động trừ ứng/vật tư, trích lập bảo hành (Có 3311), sinh hóa đơn vào Tài khoản Chi phí Thầu phụ (Thường là Nợ 627, lấy từ Setting thay vì 622).</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-building text-info me-2"></i> 3.4. Chủ Đầu Tư (Customer)</h3>
+                                <p class="text-muted">Đối ứng với Thầu phụ, quản lý dòng tiền vào (Inflow) và ghi nhận Doanh thu.</p>
+                                <ul>
+                                    <li><span class="az-code">az.customer.contract</span>: Hợp đồng đầu ra bán hàng (kèm BOQ).</li>
+                                    <li><span class="az-code">az.customer.advance</span> / <span class="az-code">az.customer.acceptance</span>: Tạm ứng, nghiệm thu theo giai đoạn. Chốt số phát hành Hóa đơn Doanh thu.</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="az-h3"><i class="fa fa-pie-chart text-danger me-2"></i> 3.5. Kế toán &amp; Quy chuẩn hệ thống (Core Framework)</h3>
+                                <ul>
+                                    <li><span class="az-code">project.project</span>: Model được inherit thêm biến Hạn mức ngân sách tổng và logic "Block Ngân sách" (Hệ thống sẽ hook vào hàm <span class="az-code">_prepare_acceptance_move_lines</span> để quét tổng chi phí hiện tại + giá trị nghiệm thu kỳ này, nếu vượt ngân sách -> Block báo lỗi ngay lập tức, chặn không cho Post bút toán kế toán).</li>
+                                    <li><span class="az-code">res.company</span> &amp; <span class="az-code">res.config.settings</span>: Quản lý setting tài khoản hạch toán mặc định (141, 3311, 622, 627...). Cố tình loại bỏ 331, 334, 131 để dùng từ <span class="az-code">property_account</span> của Partner.</li>
+                                    <li><strong class="text-danger">Nguyên tắc State Protection:</strong> Các Model đều cấm xóa (`unlink()`) khi document đang ở state `done` hoặc `posted`.</li>
+                                    <li><strong class="text-danger">Fat Models - Skinny Controllers:</strong> Validate logic bảo vệ ngân sách trực tiếp trên Models bằng constraint thay vì logic view GUI.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 4 -->
+                        <div id="trouble" class="az-card">
+                            <h2 class="az-section-title text-danger">4. Cẩm nang Sửa Lỗi Vận Hành 🆘</h2>
+                            <h3 class="az-h3">A. Lỗi Vệ sĩ chặn tạo Account dù chưa vượt gói (False Positive)</h3>
+                            <p><strong>Lý do:</strong> Đã đổi gói cước trên Odoo Master UI nhưng file cấu hình hoặc biến ENV `<span class="az-code">AZHOME_MAX_USERS</span>` trong container chưa kịp sync đồng bộ qua.</p>
+                            <p><strong>Khắc phục:</strong> Bấm phím tắt <span class="az-highlight">Nâng - Hạ Định mức</span> trên `saas.tenant` một lần nữa để nó ping thư viện Docker API restart lại Container cùng ENV mới. Dữ liệu vĩnh viễn không mất.</p>
+
+                            <h3 class="az-h3">B. Không load được Master (502 Bad Gateway) hoặc Tenant không lên Port</h3>
+                            <p><strong>Khắc phục ngay lập tức:</strong> Rút ống thở log Docker: <br/><strong class="az-code bg-dark text-light p-1 rounded mt-1 d-inline-block">docker logs [tên_tenant_or_master] --tail 100</strong> <br/> Xác định có thiếu package Python (markupsafe, docker) không, hoặc cấn Port không. Nếu Master die, SSH thẳng vào NAS chạy `docker restart odoo_master` thay vì thao tác trên UI Synology.</p>
+                        </div>
+
+                        <div class="text-center my-5 text-muted">
+                            <small>Quy trình Vận hành Kỹ thuật nội bộ - AzHome Data Center.<br/>Độc quyền dành riêng Kỹ sư Quản trị - Phiên bản Odoo 19.</small>
+                        </div>
+
+                    </main>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

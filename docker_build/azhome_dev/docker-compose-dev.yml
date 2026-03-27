@@ -1,0 +1,36 @@
+version: '3.8'
+
+# ============================================================
+#  AZHOME SaaS Dev Lab - Docker Compose (DEVELOPMENT)
+#  Cấu trúc thư mục: /volume1/docker/azhome_dev/
+# ============================================================
+
+services:
+  odoo_dev_lab:
+    image: odoo:19
+    container_name: odoo_dev_lab
+    user: root    # Bắt buộc để truy cập Docker Socket và cài thư viện
+    environment:
+      - HOST=db_master
+      - USER=odoo
+      - PASSWORD=odoo_saas_super_secret
+    volumes:
+      # 1. Addons Tenant (az_construction_management để Dev)
+      - /volume1/docker/azhome_dev/az_addons_cons:/mnt/extra-addons
+      # 2. Addons SaaS Master (azhome_saas để Dev)
+      - /volume1/docker/azhome_dev/az_addons_saas:/mnt/master-addons
+      # 3. Docker Socket (để dev tính năng tạo Container)
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # Cổng Dev 8079, không đụng 8069 Production
+      - "8079:8069"
+    command: >
+      odoo
+      --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons,/mnt/master-addons
+    networks:
+      - az_saas_network
+    restart: unless-stopped
+
+networks:
+  az_saas_network:
+    external: true

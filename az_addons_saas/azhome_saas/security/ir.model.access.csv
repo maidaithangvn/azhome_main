@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_saas_plan_admin,saas.plan.admin,model_saas_plan,group_saas_admin,1,1,1,1
+access_saas_plan_user,saas.plan.user,model_saas_plan,group_saas_user,1,0,0,0
+access_saas_tenant_admin,saas.tenant.admin,model_saas_tenant,group_saas_admin,1,1,1,1
+access_saas_tenant_user,saas.tenant.user,model_saas_tenant,group_saas_user,1,1,1,0
+access_saas_upgrade_wizard,saas.tenant.upgrade.wizard,model_saas_tenant_upgrade_wizard,group_saas_admin,1,1,1,1
+access_saas_log_wizard,saas.tenant.log.wizard,model_saas_tenant_log_wizard,group_saas_admin,1,1,1,1

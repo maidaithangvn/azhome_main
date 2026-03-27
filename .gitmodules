@@ -1,0 +1,3 @@
+[submodule "az_addons_cons/az_construction_management"]
+	path = az_addons_cons/az_construction_management
+	url = https://github.com/maidaithangvn/az_construction_payroll.git

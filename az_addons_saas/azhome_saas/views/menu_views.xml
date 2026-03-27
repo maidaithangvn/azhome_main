@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Trạm quản trị SaaS cao nhất -> hiển thị trên Odoo Master -->
+    <!-- Chú ý: Cần hình icon.png trong thư mục tĩnh static/description/icon.png. Tạm thời dùng icon có sẵn. -->
+    <menuitem id="menu_azhome_saas_root" name="AZHOME SaaS Master" sequence="10" web_icon="azhome_saas,static/description/icon.png" groups="azhome_saas.group_saas_user,azhome_saas.group_saas_admin"/>
+    
+    <menuitem id="menu_saas_tenants_root" name="Quản lý Vận hành SaaS" parent="menu_azhome_saas_root" sequence="10"/>
+    <menuitem id="menu_saas_tenants" name="Khách hàng / Docker Container" parent="menu_saas_tenants_root" action="action_saas_tenant" sequence="10"/>
+    
+    <!-- Cấu hình chỉ dành cho Admin -->
+    <menuitem id="menu_saas_configuration_root" name="Cấu hình Dịch vụ" parent="menu_azhome_saas_root" sequence="90" groups="azhome_saas.group_saas_admin"/>
+    <menuitem id="menu_saas_plan" name="Bảng Cấu hình Gói Cước" parent="menu_saas_configuration_root" action="action_saas_plan" sequence="10"/>
+
+    <!-- Manual for Tech Staff -->
+    <menuitem id="menu_saas_manual" 
+              name="Cẩm nang Kỹ thuật" 
+              parent="menu_azhome_saas_root" 
+              action="action_azhome_saas_manual_url" 
+              sequence="100"/>
+</odoo>

@@ -1,0 +1,54 @@
+version: '3.8'
+
+# ============================================================
+#  AZHOME SaaS Master - Docker Compose (PRODUCTION)
+#  Cấu trúc thư mục: /volume1/docker/azhome_main/
+# ============================================================
+
+services:
+  db_master:
+    image: postgres:15
+    container_name: db_master
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo_saas_super_secret
+      - POSTGRES_USER=odoo
+    volumes:
+      - /volume1/docker/azhome_main/master_db:/var/lib/postgresql/data
+    networks:
+      - az_saas_network
+    restart: unless-stopped
+
+  odoo_master:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.odoomaster.rule=Host(`xd.azhome.top`)"
+      - "traefik.http.services.odoomaster.loadbalancer.server.port=8069"
+
+    image: odoo:19
+    container_name: odoo_master
+    user: root
+    depends_on:
+      - db_master
+    ports:
+      - "8069:8069"
+    volumes:
+      - /volume1/docker/azhome_main/master_data:/var/lib/odoo
+      # Addons Tenant (az_construction_management, v.v.)
+      - /volume1/docker/azhome_main/az_addons_cons:/mnt/extra-addons:rw
+      # Addons SaaS Master (azhome_saas)
+      - /volume1/docker/azhome_main/az_addons_saas:/mnt/master-addons:rw
+      # Docker Socket (để tạo Container Tenant)
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons,/mnt/master-addons
+    environment:
+      - HOST=db_master
+      - USER=odoo
+      - PASSWORD=odoo_saas_super_secret
+    networks:
+      - az_saas_network
+    restart: unless-stopped
+
+networks:
+  az_saas_network:
+    external: true

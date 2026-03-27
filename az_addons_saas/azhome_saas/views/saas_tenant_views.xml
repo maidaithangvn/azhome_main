@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_saas_tenant_form" model="ir.ui.view">
+        <field name="name">saas.tenant.form</field>
+        <field name="model">saas.tenant</field>
+        <field name="arch" type="xml">
+            <form string="Thông tin Khách hàng SaaS">
+                <header>
+                    <button name="action_provision_tenant" type="object" string="🚀 Khởi tạo Máy Chủ" 
+                            invisible="state != 'draft'" class="oe_highlight"/>
+                    
+                    <button name="action_refresh_stats" type="object" string="🔄 Cập nhật Thống kê" 
+                            invisible="state != 'running'"/>
+                    
+                    <button name="action_view_container_logs" type="object" string="📋 Xem Log Container" 
+                            invisible="state == 'draft'"/>
+                    
+                    <button name="action_renew_subscription" type="object" string="📅 Gia hạn Gói" 
+                            invisible="state != 'running'"/>
+                            
+                    <button name="action_upgrade_plan" type="object" string="⬆️⬇️ Nâng - Hạ Gói" 
+                            invisible="state != 'running'" class="btn-primary"/>
+
+                    <button name="action_stop_tenant" type="object" string="⏸️ Tạm dừng" 
+                            invisible="state != 'running'"/>
+                    
+                    <button name="action_start_tenant" type="object" string="▶️ Mở lại" 
+                            invisible="state != 'stopped'" class="oe_highlight"/>
+                            
+                    <button name="action_destroy_tenant" type="object" string="🗑️ Hủy Dữ liệu &amp; Trả về Nháp" 
+                            invisible="state == 'draft'" class="btn-danger"
+                            groups="azhome_saas.group_saas_root"
+                            confirm="⚠️ CẢNH BÁO NGUY HIỂM TỘT ĐỘ: Thao tác này sẽ XÓA VĨNH VIỄN toàn bộ Database của khách hàng trong PostgreSQL và dọn sạch rác Container (bao gồm ổ đĩa Filestore tải lên). BẠN KHÔNG THỂ KHÔI PHỤC! Bạn có CHẮC CHẮN MUỐN XÓA?"/>
+                    
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,stopped"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="partner_id" placeholder="Chọn hoặc Tạo Khách hàng / Đại diện"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="info" string="Tên miền truy cập (URL)">
+                            <field name="domain_prefix" placeholder="vidu: congtyA (Chữ thường, không dấu)"/>
+                            <field name="tenant_domain" string="Domain sẽ tạo"/>
+                        </group>
+                        <group name="contact" string="Thông tin Gói cước &amp; Liên lạc">
+                            <field name="plan_id" options="{'no_create': True}"/>
+                            <field name="expiry_date"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                        </group>
+                        
+                        <group name="system" string="Thông số Kỹ thuật &amp; Tài nguyên" colspan="2">
+                            <group string="Cấu hình hệ thống">
+                                <field name="db_name" string="PostgreSQL DB"/>
+                                <field name="port" string="Cổng kết nối"/>
+                                <field name="container_id" string="Docker Container ID"/>
+                                <field name="setup_modules" string="Mô-đun mặc định"/>
+                            </group>
+                            <group string="Giám sát Tài nguyên">
+                                <label for="current_users_count" string="👤 Người dùng"/>
+                                <div class="o_row">
+                                    <field name="current_users_count" class="oe_inline"/> / <field name="max_users_display" class="oe_inline"/> users
+                                </div>
+                                
+                                <label for="disk_usage_mb" string="💾 Lưu trữ"/>
+                                <div class="o_row">
+                                    <field name="disk_usage_mb" class="oe_inline"/> MB / <field name="max_disk_display" class="oe_inline"/> GB
+                                </div>
+                                <field name="stats_last_updated" string="Cập nhật cuối"/>
+                            </group>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_saas_tenant_tree" model="ir.ui.view">
+        <field name="name">saas.tenant.list</field>
+        <field name="model">saas.tenant</field>
+        <field name="arch" type="xml">
+            <list string="Danh sách Khách hàng">
+                <field name="name" string="Tên Doanh nghiệp"/>
+                <field name="tenant_domain" string="Domain Truy cập"/>
+                <field name="plan_id" string="Gói cước"/>
+                <field name="current_users_count" string="👤 Users"/>
+                <field name="disk_usage_mb" string="💾 MB" widget="float" digits="[1,1]"/>
+                <field name="expiry_date" string="Hết hạn"/>
+                <field name="state" string="Trạng thái" widget="badge" decoration-success="state == 'running'" decoration-info="state == 'draft'" decoration-danger="state == 'stopped'"/>
+                <field name="container_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Wizard Nâng cấp Gói -->
+    <record id="view_saas_tenant_upgrade_wizard_form" model="ir.ui.view">
+        <field name="name">saas.tenant.upgrade.wizard.form</field>
+        <field name="model">saas.tenant.upgrade.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Nâng - Hạ / Đổi Gói cước SaaS">
+                <group>
+                    <field name="tenant_id"/>
+                    <group string="Hiện tại">
+                        <field name="current_plan_id" options="{'no_open': True}"/>
+                    </group>
+                    <group string="Gói mới cần thay đổi">
+                        <field name="new_plan_id" widget="radio" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <group string="Ghi chú thêm">
+                    <field name="note" placeholder="Nhập lý do hoặc thông tin khuyến mãi..."/>
+                </group>
+                <footer>
+                    <button name="action_confirm_upgrade" string="Xác nhận Thay đổi &amp; Cập nhật Container" type="object" class="btn-primary"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Menu Action -->
+    <record id="action_saas_tenant" model="ir.actions.act_window">
+        <field name="name">AZHOME Khách Hàng</field>
+        <field name="res_model">saas.tenant</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Tạo khách hàng mới (Tenant) để Cấp phát Container!
+          </p><p>
+            Mỗi công ty/khách hàng sẽ sở hữu một hệ thống hoàn toàn độc lập chạy trên Core Odoo 19 qua sức mạnh của Docker.
+          </p>
+        </field>
+    </record>
+    <!-- Wizard Xem Log Container -->
+    <record id="view_saas_tenant_log_wizard_form" model="ir.ui.view">
+        <field name="name">saas.tenant.log.wizard.form</field>
+        <field name="model">saas.tenant.log.wizard</field>
+        <field name="arch" type="xml">
+            <form string="📋 Docker Container Log">
+                <group>
+                    <group>
+                        <field name="container_name" string="🐳 Container"/>
+                        <field name="container_status" string="📌 Trạng thái"/>
+                    </group>
+                    <group>
+                        <field name="tenant_id" invisible="1"/>
+                    </group>
+                </group>
+                <separator string="Nội dung Log (80 dòng cuối)"/>
+                <field name="log_content" nolabel="1" readonly="1"
+                       style="font-family: monospace; font-size: 12px; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 6px; white-space: pre-wrap; min-height: 400px;"/>
+                <footer>
+                    <button name="action_refresh_log" string="🔄 Làm mới Log" type="object" class="btn-primary"/>
+                    <button string="Đóng" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

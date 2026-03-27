@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Gói Dùng Thử 15 Ngày (Mới thêm) -->
+        <record id="saas_plan_trial" model="saas.plan">
+            <field name="name">Gói Dùng Thử (Free Trial)</field>
+            <field name="code">TRIAL</field>
+            <field name="max_users">3</field>
+            <field name="cpu_limit">1</field>
+            <field name="mem_limit">512m</field>
+            <field name="disk_storage">5</field>
+            <field name="duration_days">15</field>
+            <field name="price_monthly">0</field>
+            <field name="price_yearly">0</field>
+        </record>
+
+        <!-- Gói B -->
+        <record id="saas_plan_b" model="saas.plan">
+            <field name="name">Gói B (Dưới 5 User)</field>
+            <field name="code">PLAN_B</field>
+            <field name="max_users">5</field>
+            <field name="cpu_limit">1</field>
+            <field name="mem_limit">1024m</field>
+            <field name="disk_storage">25</field>
+            <field name="duration_days">30</field>
+            <field name="price_monthly">320000</field>
+            <field name="price_yearly">3800000</field>
+        </record>
+
+        <!-- Gói C -->
+        <record id="saas_plan_c" model="saas.plan">
+            <field name="name">Gói C (Dưới 10 User)</field>
+            <field name="code">PLAN_C</field>
+            <field name="max_users">10</field>
+            <field name="cpu_limit">1</field>
+            <field name="mem_limit">2048m</field>
+            <field name="disk_storage">50</field>
+            <field name="duration_days">30</field>
+            <field name="price_monthly">640000</field>
+            <field name="price_yearly">7600000</field>
+        </record>
+
+        <!-- Gói D -->
+        <record id="saas_plan_d" model="saas.plan">
+            <field name="name">Gói D (Dưới 20 User)</field>
+            <field name="code">PLAN_D</field>
+            <field name="max_users">20</field>
+            <field name="cpu_limit">2</field>
+            <field name="mem_limit">2048m</field>
+            <field name="disk_storage">60</field>
+            <field name="duration_days">30</field>
+            <field name="price_monthly">920000</field>
+            <field name="price_yearly">11000000</field>
+        </record>
+
+        <!-- Gói E -->
+        <record id="saas_plan_e" model="saas.plan">
+            <field name="name">Gói E (Từ 20 - 30 User)</field>
+            <field name="code">PLAN_E</field>
+            <field name="max_users">30</field>
+            <field name="cpu_limit">2</field>
+            <field name="mem_limit">4096m</field>
+            <field name="disk_storage">80</field>
+            <field name="duration_days">30</field>
+            <field name="price_monthly">1240000</field>
+            <field name="price_yearly">14800000</field>
+        </record>
+
+    </data>
+
+    <!-- Cron job - Không để noupdate=1 nếu muốn thay đổi thông số dễ dàng sau này qua code -->
+    <data noupdate="1">
+        <record id="ir_cron_check_tenant_expiry" model="ir.cron">
+            <field name="name">SaaS: Tự động nhắc nhở hết hạn gói cước (Còn 30 ngày)</field>
+            <field name="model_id" ref="model_saas_tenant"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_check_tenant_expiry()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

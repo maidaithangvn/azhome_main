@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Category Nhóm Quyền Master -->
+        <record model="ir.module.category" id="module_category_saas">
+            <field name="name">Cấp phát máy chủ (SaaS)</field>
+            <field name="description">Kiểm soát truy cập trình tạo máy chủ Khách hàng</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <!-- Tạo Privilege ( mốc nối trung gian bắt buộc của Odoo 19 ) -->
+        <record id="privilege_azhome_saas" model="res.groups.privilege">
+            <field name="name">Truy cập AZHOME SaaS</field>
+            <field name="category_id" ref="module_category_saas"/>
+        </record>
+
+        <!-- Nhóm Nhân viên Bán hàng SaaS -->
+        <record id="group_saas_user" model="res.groups">
+            <field name="name">SaaS - Nhân viên (User)</field>
+            <field name="privilege_id" ref="privilege_azhome_saas"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">Chỉ thấy danh sách khách hàng và khởi tạo gói thử nghiệm.</field>
+        </record>
+
+        <!-- Nhóm Quản trị viên Max -->
+        <record id="group_saas_admin" model="res.groups">
+            <field name="name">SaaS - Giám đốc (Admin)</field>
+            <field name="privilege_id" ref="privilege_azhome_saas"/>
+            <field name="implied_ids" eval="[(4, ref('group_saas_user'))]"/>
+            <field name="comment">Có quyền quản lý gói cước (Plan) và cấu hình xóa sửa Master.</field>
+        </record>
+
+        <!-- Nhóm Kỹ Thuật (Root) -->
+        <record id="group_saas_root" model="res.groups">
+            <field name="name">SaaS - Kỹ thuật (Root)</field>
+            <field name="privilege_id" ref="privilege_azhome_saas"/>
+            <field name="implied_ids" eval="[(4, ref('group_saas_admin'))]"/>
+            <field name="comment">Quyền tối cao: Có thể xóa vĩnh viễn dữ liệu Khách hàng.</field>
+        </record>
+    </data>
+</odoo>

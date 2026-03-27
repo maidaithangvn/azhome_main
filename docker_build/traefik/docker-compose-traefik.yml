@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik_router
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "8081:80"        # Lỗ hổng Modem 80 móc thẳng vào đây
+      - "8080:8080"    # Trạm giám sát Bảng điều khiển luồng
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Cái gậy chọt Docker ban nãy
+    networks:
+      - az_saas_network  # Phải cắm chung Mạng với hội Odoo Master
+    restart: always
+
+networks:
+  az_saas_network:
+    external: true

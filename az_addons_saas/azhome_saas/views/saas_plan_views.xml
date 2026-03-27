@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- FORM VIEW -->
+    <record id="view_saas_plan_form" model="ir.ui.view">
+        <field name="name">saas.plan.form</field>
+        <field name="model">saas.plan</field>
+        <field name="arch" type="xml">
+            <form string="Thông tin Gói SaaS">
+                <sheet>
+                    <widget name="web_ribbon" title="Ngừng bán" bg_color="bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Ví dụ: Gói Cơ Bản (Basic)"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Cấu hình Dịch vụ (Bán hàng)">
+                            <field name="code"/>
+                            <field name="price_monthly"/>
+                            <field name="price_yearly"/>
+                            <label for="duration_value" string="Thời gian xài"/>
+                            <div class="o_row">
+                                <field name="duration_value" class="oe_inline" no_label="1"/>
+                                <field name="duration_unit" class="oe_inline" no_label="1"/>
+                                <span>(Tổng: <field name="duration_days" class="oe_inline" readonly="1"/> ngày)</span>
+                            </div>
+
+                        </group>
+                        <group string="Giới hạn Kỹ thuật (Hạ tầng Máy ảo)">
+                            <field name="max_users"/>
+                            <field name="cpu_limit"/>
+                            <field name="mem_limit"/>
+                            <field name="disk_storage"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- LIST VIEW -->
+    <record id="view_saas_plan_tree" model="ir.ui.view">
+        <field name="name">saas.plan.list</field>
+        <field name="model">saas.plan</field>
+        <field name="arch" type="xml">
+            <list string="Danh sách Gói Dịch vụ">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="max_users"/>
+                <field name="cpu_limit"/>
+                <field name="mem_limit" string="RAM"/>
+                <field name="disk_storage"/>
+                <field name="price_monthly" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_saas_plan" model="ir.actions.act_window">
+        <field name="name">Bảng Gói Cước</field>
+        <field name="res_model">saas.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Tạo gói dịch vụ (Plan) thứ nhất!
+          </p><p>
+            Ví dụ: Gói Free, Gói VIP. Ở đây bạn quản lý quy chuẩn bán hàng và các giới hạn phần cứng AWS/Docker như RAM, CPU cho từng gói!
+          </p>
+        </field>
+    </record>
+</odoo>
